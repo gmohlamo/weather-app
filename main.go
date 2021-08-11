@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -9,10 +8,8 @@ import (
 	"strings"
 
 	"github.com/kr/pretty"
+	"github.com/tidwall/gjson"
 )
-
-func getTemp(object map[string]interface{}) {
-}
 
 func main() {
 	home := os.Getenv("HOME")
@@ -31,7 +28,7 @@ func main() {
 		log.Fatalf("Error: %s")
 	}
 	//at this point we know that the string is a JSON object
-	var object map[string]interface{}
-	json.Unmarshal(content, &object)
-	pretty.Println(object)
+	contentStr := string(content)
+	pretty.Printf("Current Temp: %s\n", gjson.Get(contentStr, "current.temp_c").String())
+	pretty.Printf("Current Feel: %s\n", gjson.Get(contentStr, "current.feelslike_c").String())
 }
