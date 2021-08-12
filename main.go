@@ -78,9 +78,9 @@ func writePipes() {
 		log.Fatalf("Please ensure that the your API Key is included in a file named \"api.key\" under your $HOME/.config/weather-app directory\nError: %s\n")
 	}
 	key := strings.Trim(string(file), "\n")
-	tempFile := getFifo(getTempPipePath())
-	feelFile := getFifo(getFeelPipePath())
 	for {
+		tempFile := getFifo(getTempPipePath())
+		feelFile := getFifo(getFeelPipePath())
 		fmt.Println("Making iteration")
 		res, err := http.Get("http://api.weatherapi.com/v1/current.json?key=" + key + "&q=auto:ip")
 		if err != nil {
@@ -98,8 +98,8 @@ func writePipes() {
 		fmt.Fprintf(feelFile, "%s", gjson.Get(contentStr, "current.feelslike_c").String())
 		fmt.Printf("Feel: %s\n", gjson.Get(contentStr, "current.feelslike_c").String())
 		time.Sleep(30 * time.Second) //sleep for an hour
-		//tempFile.Close()             //close files after writing to them
-		//feelFile.Close()
+		tempFile.Close()             //close files after writing to them
+		feelFile.Close()
 	}
 }
 
