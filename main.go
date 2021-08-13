@@ -64,10 +64,7 @@ func getFeelPipePath() string {
 //open these fifo files
 func getFifo(fileName string) *os.File {
 	fmt.Println("Opening FIFO")
-	f, err := os.OpenFile(fileName, os.O_WRONLY|syscall.O_NONBLOCK, os.ModeNamedPipe)
-	if err != nil {
-		log.Printf("Error opening FIFO: %s\n", err)
-	}
+	f, _ := os.OpenFile(fileName, os.O_WRONLY|syscall.O_NONBLOCK, os.ModeNamedPipe)
 	return f
 }
 
@@ -95,8 +92,6 @@ func writePipes() {
 		contentStr := string(content)
 		_, err = fmt.Fprintf(tempFile, "%s", gjson.Get(contentStr, "current.temp_c").String())
 		if err != nil {
-			//reconnect to pipe
-			log.Printf("Error: %s")
 			tempFile.Close()
 			tempFile = getFifo(getTempPipePath())
 		}
@@ -104,7 +99,6 @@ func writePipes() {
 		_, err = fmt.Fprintf(feelFile, "%s", gjson.Get(contentStr, "current.feelslike_c").String())
 		if err != nil {
 			//reconnect to pipe
-			log.Printf("Error: %s")
 			feelFile.Close()
 			feelFile = getFifo(getFeelPipePath())
 		}
