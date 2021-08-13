@@ -5,3 +5,7 @@ I am currently using Xmobar and require the following:
 # Currently
 The application will print the current temperature and the real feel
 These should make it into a piped output and then get rendered to the bar
+
+# TODO
+
+1. Test if this can be added to xmobar
