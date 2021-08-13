@@ -94,6 +94,5 @@ func writePipes() {
 }
 
 func main() {
-	fmt.Printf("Starting process")
 	writePipes()
 }
