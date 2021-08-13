@@ -64,9 +64,9 @@ func getFeelPipePath() string {
 //open these fifo files
 func getFifo(fileName string) *os.File {
 	fmt.Println("Opening FIFO")
-	f, err := os.OpenFile(fileName, os.O_WRONLY, os.ModeNamedPipe)
+	f, err := os.OpenFile(fileName, os.O_WRONLY|syscall.O_NONBLOCK, os.ModeNamedPipe)
 	if err != nil {
-		log.Fatalf("Error opening FIFO: %s\n", err)
+		log.Printf("Error opening FIFO: %s\n", err)
 	}
 	return f
 }
@@ -78,9 +78,9 @@ func writePipes() {
 		log.Fatalf("Please ensure that the your API Key is included in a file named \"api.key\" under your $HOME/.config/weather-app directory\nError: %s\n")
 	}
 	key := strings.Trim(string(file), "\n")
+	tempFile := getFifo(getTempPipePath())
+	feelFile := getFifo(getFeelPipePath())
 	for {
-		tempFile := getFifo(getTempPipePath())
-		feelFile := getFifo(getFeelPipePath())
 		fmt.Println("Making iteration")
 		res, err := http.Get("http://api.weatherapi.com/v1/current.json?key=" + key + "&q=auto:ip")
 		if err != nil {
@@ -93,13 +93,25 @@ func writePipes() {
 		}
 		//at this point we know that the string is a JSON object
 		contentStr := string(content)
-		fmt.Fprintf(tempFile, "%s", gjson.Get(contentStr, "current.temp_c").String())
+		_, err = fmt.Fprintf(tempFile, "%s", gjson.Get(contentStr, "current.temp_c").String())
+		if err != nil {
+			//reconnect to pipe
+			log.Printf("Error: %s")
+			tempFile.Close()
+			tempFile = getFifo(getTempPipePath())
+		}
 		fmt.Printf("Temp: %s\n", gjson.Get(contentStr, "current.temp_c").String())
-		fmt.Fprintf(feelFile, "%s", gjson.Get(contentStr, "current.feelslike_c").String())
+		_, err = fmt.Fprintf(feelFile, "%s", gjson.Get(contentStr, "current.feelslike_c").String())
+		if err != nil {
+			//reconnect to pipe
+			log.Printf("Error: %s")
+			feelFile.Close()
+			feelFile = getFifo(getFeelPipePath())
+		}
 		fmt.Printf("Feel: %s\n", gjson.Get(contentStr, "current.feelslike_c").String())
 		time.Sleep(30 * time.Second) //sleep for an hour
-		tempFile.Close()             //close files after writing to them
-		feelFile.Close()
+		//tempFile.Close()             //close files after writing to them
+		//feelFile.Close()
 	}
 }
 
