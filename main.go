@@ -18,7 +18,6 @@ const tempPipe = "weather-app-tempc"
 const tempFeel = "weather-app-feelc"
 
 func getTempPipePath() string {
-	fmt.Println("Getting temp file path")
 	home := os.Getenv("HOME")
 	path := home + configDir + tempPipe
 	fileInfo, err := os.Stat(path)
@@ -40,7 +39,6 @@ func getTempPipePath() string {
 }
 
 func getFeelPipePath() string {
-	fmt.Println("Getting feel file path")
 	home := os.Getenv("HOME")
 	path := home + configDir + tempFeel
 	fileInfo, err := os.Stat(path)
@@ -63,7 +61,6 @@ func getFeelPipePath() string {
 
 //open these fifo files
 func getFifo(fileName string) *os.File {
-	fmt.Println("Opening FIFO")
 	f, _ := os.OpenFile(fileName, os.O_WRONLY|syscall.O_NONBLOCK, os.ModeNamedPipe)
 	return f
 }
@@ -78,7 +75,6 @@ func writePipes() {
 	tempFile := getFifo(getTempPipePath())
 	feelFile := getFifo(getFeelPipePath())
 	for {
-		fmt.Println("Making iteration")
 		res, err := http.Get("http://api.weatherapi.com/v1/current.json?key=" + key + "&q=auto:ip")
 		if err != nil {
 			log.Fatalf("Error: %s")
@@ -104,8 +100,6 @@ func writePipes() {
 		}
 		fmt.Printf("Feel: %s\n", gjson.Get(contentStr, "current.feelslike_c").String())
 		time.Sleep(30 * time.Second) //sleep for an hour
-		//tempFile.Close()             //close files after writing to them
-		//feelFile.Close()
 	}
 }
 
