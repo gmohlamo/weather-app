@@ -30,7 +30,8 @@ func getTempPipePath() string {
 	}
 	err = syscall.Mkfifo(path, 0644) //owner can write, but everybody can read
 	if err != nil {
-		log.Fatalf("Error: %s\n", err)
+		log.Printf("Error: %s\n", err)
+	}
 	return path
 }
 
@@ -47,7 +48,7 @@ func getFeelPipePath() string {
 	}
 	err = syscall.Mkfifo(path, 0644) //owner can write, but everybody can read
 	if err != nil {
-		log.Fatalf("Error: %s\n", err)
+		log.Printf("Error: %s\n", err)
 	}
 	return path
 }
@@ -61,7 +62,7 @@ func writePipes() {
 	home := os.Getenv("HOME")
 	file, err := ioutil.ReadFile(home + configDir + "api.key")
 	if err != nil {
-		log.Fatalf("Please ensure that the your API Key is included in a file named \"api.key\" under your $HOME/.config/weather-app directory\nError: %s\n")
+		log.Fatalf("Please ensure that the your API Key is included in a file named \"api.key\" under your $HOME/.config/weather-app directory\nError: %s\n", err)
 	}
 	key := strings.Trim(string(file), "\n")
 	tempFile := getFifo(getTempPipePath())
@@ -69,12 +70,12 @@ func writePipes() {
 	for {
 		res, err := http.Get("http://api.weatherapi.com/v1/current.json?key=" + key + "&q=auto:ip")
 		if err != nil {
-			log.Fatalf("Error: %s")
+			log.Fatalf("Error: %s", err)
 		}
 		content, err := ioutil.ReadAll(res.Body)
 		res.Body.Close()
 		if err != nil {
-			log.Fatalf("Error: %s")
+			log.Printf("Error: %s", err)
 		}
 		contentStr := string(content)
 		_, err = fmt.Fprintf(tempFile, "%s", gjson.Get(contentStr, "current.temp_c").String())
